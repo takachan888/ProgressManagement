@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div class="d-flex align-items-center gap-2">
+    <h3 class="m-0">リーダーダッシュボード</h3>
+    <a class="btn btn-primary btn-sm" href="{% url 'leader_task_create' %}">＋ タスク追加</a>
+  </div>
+  <div class="fs-5">全体進捗：<strong>{{ overall }}%</strong></div>
+</div>
+
+<div class="card shadow-sm mb-3">
+  <div class="card-body">
+    <canvas id="memberChart" height="90"></canvas>
+  </div>
+</div>
+
+<div class="row g-3">
+  {% for m in members %}
+  {% with lu=m.last_updated %}
+  <div class="col-12 col-lg-4">
+    <div class="card shadow-sm {% if lu and lu < stale_border %}border border-danger{% endif %}">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center">
+          <h5 class="m-0">{{ m.user.username }}</h5>
+
+          <div class="d-flex align-items-center gap-2">
+            {# ✅ 追加：状態（未着手/作業中/完了） #}
+            <span class="badge {{ m.state_badge }}">{{ m.state }}</span>
+            <span class="badge text-bg-dark">{{ m.progress }}%</span>
+          </div>
+        </div>
+
+        <div class="progress my-2">
+          <div class="progress-bar" style="width: {{ m.progress }}%">{{ m.progress }}%</div>
+        </div>
+
+        <div class="small text-muted">
+          タスク：{{ m.done_count }}/{{ m.task_count }} 完了<br>
+          最終更新：{% if lu %}{{ lu|date:"m/d H:i" }}{% else %}-{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endwith %}
+  {% endfor %}
+</div>
+
+<hr class="my-4">
+
+<div class="d-flex align-items-center justify-content-between mb-2">
+  <h4 class="m-0">全タスク一覧</h4>
+  <div class="small text-muted">編集・削除はここから</div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-striped table-hover mb-0 align-middle">
+        <thead class="table-dark">
+          <tr>
+            <th style="min-width: 260px;">タイトル</th>
+            <th style="min-width: 140px;">担当</th>
+            <th style="min-width: 90px;">役割</th>
+            <th style="min-width: 110px;">状態</th>
+            <th style="min-width: 90px;">進捗</th>
+            <th style="min-width: 90px;">重み</th>
+            <th style="min-width: 120px;">期限</th>
+            <th style="min-width: 130px;">更新</th>
+            <th style="min-width: 140px;">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in tasks %}
+          <tr>
+            <td>
+              <div class="fw-semibold">{{ t.title }}</div>
+              {% if t.memo_today %}
+                <div class="small text-muted">今日：{{ t.memo_today }}</div>
+              {% endif %}
+              {% if t.memo_next %}
+                <div class="small text-muted">次：{{ t.memo_next }}</div>
+              {% endif %}
+            </td>
+
+            <td>{{ t.owner.username }}</td>
+            <td>{{ t.role|default:"-" }}</td>
+
+            {# ✅ 変更：status表示をprogress基準に統一 #}
+            <td>
+              {% if t.progress == 0 %}
+                <span class="badge text-bg-secondary">未着手</span>
+              {% elif t.progress == 100 %}
+                <span class="badge text-bg-success">完了</span>
+              {% else %}
+                <span class="badge text-bg-primary">作業中</span>
+              {% endif %}
+            </td>
+
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="progress flex-grow-1" style="height: 10px;">
+                  <div class="progress-bar" style="width: {{ t.progress }}%"></div>
+                </div>
+                <span class="small">{{ t.progress }}%</span>
+              </div>
+            </td>
+
+            <td>{{ t.points }}</td>
+            <td>{{ t.due_date|default:"-" }}</td>
+            <td class="small text-muted">{{ t.updated_at|date:"m/d H:i" }}</td>
+
+            <td>
+              <div class="d-flex gap-2">
+                <a class="btn btn-outline-primary btn-sm"
+                   href="{% url 'leader_task_edit' t.id %}">編集</a>
+                <a class="btn btn-outline-danger btn-sm"
+                   href="{% url 'leader_task_delete' t.id %}">削除</a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="9">
+              <div class="p-3">タスクがありません。「＋ タスク追加」から作成できます。</div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+  const labels = {{ chart_labels|safe }};
+  const values = {{ chart_values|safe }};
+
+  const ctx = document.getElementById("memberChart");
+  new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [{ label: "進捗(%)", data: values }]
+    },
+    options: { scales: { y: { beginAtZero: true, max: 100 } } }
+  });
+</script>
+
+{% endblock %}

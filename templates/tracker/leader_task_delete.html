@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<h3 class="mb-3">削除確認</h3>
+
+<div class="card shadow-sm border-danger">
+  <div class="card-body">
+    <p class="mb-2">このタスクを削除しますか？</p>
+    <ul class="mb-3">
+      <li><strong>{{ task.title }}</strong></li>
+      <li>担当：{{ task.owner.username }}</li>
+      <li>進捗：{{ task.progress }}%</li>
+    </ul>
+
+    <form method="post" class="d-flex gap-2">
+      {% csrf_token %}
+      <button class="btn btn-danger">削除する</button>
+      <a class="btn btn-outline-secondary" href="{% url 'leader_dashboard' %}">戻る</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

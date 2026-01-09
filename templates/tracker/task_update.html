@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h3 class="mb-3">更新：{{ task.title }}</h3>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <label class="form-label">状態</label>
+        {{ form.status }}
+        {% if form.status.errors %}
+          <div class="text-danger small">{{ form.status.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <label class="form-label m-0">進捗</label>
+          <span class="badge text-bg-dark"><span id="progressValue">0</span>%</span>
+        </div>
+
+        {{ form.progress }}
+
+        {% if form.progress.errors %}
+          <div class="text-danger small">{{ form.progress.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">今日やったこと</label>
+        {{ form.memo_today }}
+        {% if form.memo_today.errors %}
+          <div class="text-danger small">{{ form.memo_today.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">次やること</label>
+        {{ form.memo_next }}
+        {% if form.memo_next.errors %}
+          <div class="text-danger small">{{ form.memo_next.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="d-flex gap-2">
+        <button class="btn btn-primary">保存</button>
+        <a class="btn btn-outline-secondary" href="{% url 'my_tasks' %}">戻る</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const slider = document.getElementById("id_progress");
+    const out = document.getElementById("progressValue");
+    if (!slider || !out) return;
+
+    const sync = () => { out.textContent = slider.value || "0"; };
+    slider.addEventListener("input", sync);
+    sync(); // 初期表示
+  })();
+</script>
+
+{% endblock %}

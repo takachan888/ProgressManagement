@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<h3 class="mb-3">削除確認</h3>
+
+<div class="card shadow-sm border-danger">
+  <div class="card-body">
+    <p class="mb-2"><strong>{{ target.username }}</strong> を削除しますか？</p>
+
+    {% if task_count > 0 %}
+      <div class="alert alert-warning">
+        このユーザーには <strong>{{ task_count }}</strong> 件のタスクが紐づいています。<br>
+        削除するとタスクも消えます（注意）。
+        <br>消したくないなら「削除」ではなく、編集画面で <strong>is_active</strong> をオフにするのがおすすめ。
+      </div>
+    {% endif %}
+
+    <form method="post" class="d-flex gap-2">
+      {% csrf_token %}
+      <button class="btn btn-danger">削除する</button>
+      <a class="btn btn-outline-secondary" href="{% url 'leader_user_list' %}">戻る</a>
+    </form>
+  </div>
+</div>
+{% endblock %}
